@@ -3,9 +3,13 @@ import Modal from "@/components/NotePreview/NotePreview";
 import css from "@/components/NotePreview/NotePreview.module.css";
 import { fetchNoteById } from "@/lib/api/clientApi";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 const NotePreviewClient = () => {
+  const router = useRouter();
+
+  const close = () => router.back();
+
   const { id } = useParams<{ id: string }>();
 
   const {
@@ -27,7 +31,7 @@ const NotePreviewClient = () => {
     : `Created at: ${note.createdAt}`;
 
   return (
-    <Modal>
+    <Modal onClose={close}>
       <div className={css.container}>
         <div className={css.item}>
           <div className={css.header}>

@@ -5,7 +5,15 @@ import { FetchNotesResponse } from "./clientApi";
 import { User } from "@/types/user";
 
 export async function fetchNoteById(id: string) {
-  const res = await nextServer.get<Note>(`/notes/${id}`);
+  const cookieStore = cookies();
+  const cookieString = cookieStore.toString();
+
+  const res = await nextServer.get<Note>(`/notes/${id}`, {
+    headers: {
+      Cookie: cookieString,
+    },
+  });
+
   return res.data;
 }
 

@@ -4,9 +4,12 @@ import css from "./EditProfilePage.module.css";
 import { useEffect, useState } from "react";
 import { getMe, updateMe } from "@/lib/api/clientApi";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/authStore";
 
 export default function Edit() {
   const router = useRouter();
+
+  const setUser = useAuthStore((state) => state.setUser);
 
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -29,6 +32,11 @@ export default function Edit() {
     event.preventDefault();
     try {
       await updateMe({ username: userName });
+      setUser({
+        email: userEmail,
+        username: userName,
+        avatar: userAvatar,
+      });
       router.push("/profile");
     } catch {
       setError("Something went wrong");
