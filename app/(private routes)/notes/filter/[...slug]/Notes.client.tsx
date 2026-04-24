@@ -1,45 +1,42 @@
 "use client";
-
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import css from "./NotesPage.module.css";
+import { useDebouncedCallback } from "use-debounce";
 import NoteList from "@/components/NoteList/NoteList";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { fetchNotes } from "@/lib/api";
 import Pagination from "@/components/Pagination/Pagination";
 import SearchBox from "@/components/SearchBox/SearchBox";
-import { useDebouncedCallback } from "use-debounce";
+import css from "../../NotesPage.module.css";
 import Link from "next/link";
+import { fetchNotes } from "@/lib/api/clientApi";
 
-export default function NotesListClient() {
+interface NotesClientProps {
+  tag?: string;
+}
+export default function NotesClient({ tag }: NotesClientProps) {
   const [page, setPage] = useState(1);
   const [searchValue, setSearchValue] = useState("");
 
-  const [inputValue, setInputValue] = useState("");
-
   const { data, isSuccess } = useQuery({
-    queryKey: ["notes", searchValue, page],
-    queryFn: () => fetchNotes(searchValue, page),
+    queryKey: ["notes", searchValue, page, tag],
+    queryFn: () => fetchNotes(searchValue, page, tag),
     placeholderData: keepPreviousData,
-    refetchOnMount: false,
   });
 
-  const applySearch = useDebouncedCallback((value: string) => {
-    setSearchValue(value);
-    setPage(1);
-  }, 500);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const val = event.target.value;
-    setInputValue(val);
-    applySearch(val.trim());
-  };
+  const handleChange = useDebouncedCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchValue(event.target.value.trim());
+      setPage(1);
+    },
+    500,
+  );
 
   const totalPages = data?.totalPages || 0;
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={inputValue} onSearch={handleChange} />
+        <SearchBox value={searchValue} onSearch={handleChange} />
+
         {totalPages > 1 && (
           <Pagination
             totalPages={totalPages}

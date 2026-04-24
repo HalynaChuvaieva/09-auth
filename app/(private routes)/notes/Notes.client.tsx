@@ -1,42 +1,46 @@
 "use client";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
 import { useState } from "react";
-import { fetchNotes } from "@/lib/api";
-import { useDebouncedCallback } from "use-debounce";
+import css from "./NotesPage.module.css";
 import NoteList from "@/components/NoteList/NoteList";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+
 import Pagination from "@/components/Pagination/Pagination";
 import SearchBox from "@/components/SearchBox/SearchBox";
-import css from "../../NotesPage.module.css";
+import { useDebouncedCallback } from "use-debounce";
 import Link from "next/link";
+import { fetchNotes } from "@/lib/api/clientApi";
 
-interface NotesClientProps {
-  tag?: string;
-}
-export default function NotesClient({ tag }: NotesClientProps) {
+export default function NotesListClient() {
   const [page, setPage] = useState(1);
   const [searchValue, setSearchValue] = useState("");
 
+  const [inputValue, setInputValue] = useState("");
+
   const { data, isSuccess } = useQuery({
-    queryKey: ["notes", searchValue, page, tag],
-    queryFn: () => fetchNotes(searchValue, page, tag),
+    queryKey: ["notes", searchValue, page],
+    queryFn: () => fetchNotes(searchValue, page),
     placeholderData: keepPreviousData,
+    refetchOnMount: false,
   });
 
-  const handleChange = useDebouncedCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchValue(event.target.value.trim());
-      setPage(1);
-    },
-    500,
-  );
+  const applySearch = useDebouncedCallback((value: string) => {
+    setSearchValue(value);
+    setPage(1);
+  }, 500);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const val = event.target.value;
+    setInputValue(val);
+    applySearch(val.trim());
+  };
 
   const totalPages = data?.totalPages || 0;
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={searchValue} onSearch={handleChange} />
-
+        <SearchBox value={inputValue} onSearch={handleChange} />
         {totalPages > 1 && (
           <Pagination
             totalPages={totalPages}
